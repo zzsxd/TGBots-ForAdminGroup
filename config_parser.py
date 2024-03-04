@@ -15,7 +15,7 @@ class ConfigParser:
         super(ConfigParser, self).__init__()
         self.__file_path = file_path
         self.__default_pathes = {'Windows': 'C:\\', 'Linux': '/'}
-        self.__default = {'tg_api': '', 'admins': [], 'chat_id': ''}
+        self.__default = {'tg_api': '', 'admins': [], 'chat_id': '', 'db_file_name': '',}
         self.__current_config = None
         self.load_conf()
 

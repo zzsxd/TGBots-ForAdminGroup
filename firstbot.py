@@ -8,10 +8,11 @@ import time
 import platform
 import telebot
 import threading
-from backend import TempUserData
+from threading import Lock
+from backend import TempUserData, DbAct
 from config_parser import ConfigParser
 from frontend import Bot_inline_btns_first
-
+from db import DB
 ####################################################################
 config_name = 'botfirstsecrets.json'
 last_message_times = {}  # Список для отслеживания пользователей и времени их последнего сообщения
@@ -95,6 +96,8 @@ if '__main__' == __name__:
     work_dir = os.path.dirname(os.path.realpath(__file__))
     config = ConfigParser(f'{work_dir}/{config_name}', os_type)
     temp_user_data = TempUserData()
+    db = DB(config.get_config()['db_file_name'], Lock())
+    db_actions = DbAct(db, config)
     time_machine = threading.Thread(target=clear_machine).start()
     bot = telebot.TeleBot(config.get_config()['tg_api'])
     main()

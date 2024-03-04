@@ -22,52 +22,10 @@ class DB:
             self.__db = sqlite3.connect(self.__db_path, check_same_thread=False)
             self.__cursor = self.__db.cursor()
             self.__cursor.execute('''
-            CREATE TABLE users(
+            CREATE TABLE posts(
             row_id INTEGER primary key autoincrement not null,
-            user_id INTEGER,
-            first_name TEXT,
-            last_name TEXT,
-            nick_name TEXT,
-            sales INTEGER,
-            is_admin BOOL,
-            UNIQUE(user_id)
-            )
-            ''')
-            self.__cursor.execute('''
-            CREATE TABLE products(
-            row_id TEXT,
-            photo BLOB,
-            price INTEGER,
-            key TEXT,
-            category TEXT,
-            preview TEXT,
-            description TEXT
-            )
-            ''')
-            self.__cursor.execute('''
-            CREATE TABLE sales(
-            row_id INTEGER primary key autoincrement not null,
-            time INTEGER,
-            name TEXT,
-            price INTEGER,
-            payment_status BOOL,  
-            nick_tg TEXT,
-            user_id INTEGER,
-            key TEXT,
-            product INTEGER
-            )
-            ''')
-            self.__cursor.execute('''
-            CREATE TABLE categories(
-            id TEXT,
-            name TEXT
-            )
-            ''')
-            self.__cursor.execute('''
-            CREATE TABLE subcategories(
-            id TEXT,
-            id_categories TEXT,
-            name TEXT
+            photo BOOL,
+            content TEXT
             )
             ''')
             self.__db.commit()
