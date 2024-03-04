@@ -7,9 +7,23 @@ from telebot import types
 #####################################
 
 
-class Bot_inline_btns:
+class Bot_inline_btns_first:
     def __init__(self):
-        super(Bot_inline_btns, self).__init__()
+        super(Bot_inline_btns_first, self).__init__()
+        self.__markup = types.InlineKeyboardMarkup(row_width=2)
+
+    def start_btns(self):
+        keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        rules = types.KeyboardButton('Правила')
+        browser = types.KeyboardButton('Ссылка на браузер')
+        on_nego = types.KeyboardButton('Ссылка на него')
+        keyboard.add(rules, browser, on_nego)
+        return keyboard
+
+
+class Bot_inline_btns_second:
+    def __init__(self):
+        super(Bot_inline_btns_second, self).__init__()
         self.__markup = types.InlineKeyboardMarkup(row_width=2)
 
     # def start_btns(self):

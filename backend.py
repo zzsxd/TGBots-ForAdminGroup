@@ -5,7 +5,7 @@
 #####################################
 import time
 from datetime import datetime
-
+import copy
 #####################################
 
 
@@ -13,11 +13,18 @@ class TempUserData:
     def __init__(self):
         super(TempUserData, self).__init__()
         self.__user_data = {}
+        self.__reset = [0, 0]
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
-            self.__user_data.update({user_id: [None, [None, None, None, None, None, None], None, None, None]}) # 1 - status, 2 - m
+            self.__user_data.update({user_id: [0, 0]}) # 1 - status, 2 - m
         return self.__user_data
+
+    def get_all_temp_data(self):
+        return self.__user_data
+
+    def reset_user(self, user_id):
+        self.temp_data(user_id)[user_id] = copy.deepcopy(self.__reset)
 
 
 

@@ -7,29 +7,48 @@ import os
 import time
 import platform
 import telebot
-from telebot import types
-from threading import Lock
-from backend import TempUserData, DbAct
+import threading
+from backend import TempUserData
 from config_parser import ConfigParser
-from db import DB
-from frontend import Bot_inline_btns
+from frontend import Bot_inline_btns_first
 
 ####################################################################
 config_name = 'botfirstsecrets.json'
-
 last_message_times = {}  # Список для отслеживания пользователей и времени их последнего сообщения
 posts = {}  # Словарь для хранения созданных постов
-chat_id = 'your_chat_id'  # ID группы в Telegram
-
-
 ####################################################################
+
+
+def clear_machine():
+    while True:
+        print(temp_user_data.get_all_temp_data())
+        for i in temp_user_data.get_all_temp_data().keys():
+            temp_user_data.get_all_temp_data()[i][0] = 0
+            print(temp_user_data.get_all_temp_data()[i][0])
+        time.sleep(5)
+
+
 def main():
     @bot.message_handler(commands=['start'])
     def start_msg(message):
-        buttons = Bot_inline_btns
+        buttons = Bot_inline_btns_first()
         user_name = message.from_user.first_name
-        bot.send_message(message.chat.id, f"Привет, {user_name}, я бот для администрирования группы.",
+        bot.send_message(message.chat.id, f"Привет, {user_name}, я бот для администрирования группы.\nID чата: {message.chat.id}",
                          reply_markup=buttons.start_btns())
+
+    @bot.message_handler(content_types=['text'])
+    def text(message):
+        user_id = message.from_user.id
+        temp_user_data.temp_data(user_id)[user_id][0] += 1
+        if temp_user_data.temp_data(user_id)[user_id][0] >= 10:
+            temp_user_data.temp_data(user_id)[user_id][1] += 1
+            if temp_user_data.temp_data(user_id)[user_id][1] == 1:
+                bot.reply_to(message, 'Не спамьте!')
+            elif temp_user_data.temp_data(user_id)[user_id][1] == 2:
+                bot.reply_to(message, 'Не спамьте! Последнее предупреждение!')
+            elif temp_user_data.temp_data(user_id)[user_id][1] == 3:
+                bot.restrict_chat_member(chat_id=config.get_config()['chat_id'], user_id=user_id)
+                temp_user_data.reset_user(user_id)
 
     @bot.message_handler(func=lambda message: True)
     def handle_message(message):
@@ -76,7 +95,6 @@ if '__main__' == __name__:
     work_dir = os.path.dirname(os.path.realpath(__file__))
     config = ConfigParser(f'{work_dir}/{config_name}', os_type)
     temp_user_data = TempUserData()
-    db = DB(config.get_config()['db_file_name'], Lock())
-    db_actions = DbAct(db, config)
+    time_machine = threading.Thread(target=clear_machine).start()
     bot = telebot.TeleBot(config.get_config()['tg_api'])
     main()
