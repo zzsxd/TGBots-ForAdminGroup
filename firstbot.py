@@ -28,6 +28,9 @@ def clear_machine():
             print(temp_user_data.get_all_temp_data()[i][0])
         time.sleep(5)
 
+def is_admin(user_id, admin_ids):
+    return user_id in admin_ids
+
 
 def main():
     @bot.message_handler(commands=['start'])
@@ -36,6 +39,18 @@ def main():
         user_name = message.from_user.first_name
         bot.send_message(message.chat.id, f"Привет, {user_name}, я бот для администрирования группы.\nID чата: {message.chat.id}",
                          reply_markup=buttons.start_btns())
+
+    @bot.message_handler(commands=['admin'])
+    def admin_msg(message):
+        buttons = Bot_inline_btns_first()
+        user_id = message.from_user.id
+        user_name = message.from_user.first_name
+        print(user_id)
+        print(config.get_config()['admins'])
+        if is_admin(message.chat.id, admin_ids):
+            bot.send_message(message.chat.id, f'Привет!, {user_name}!', reply_markup=buttons.admin_btns())
+        else:
+            bot.send_message(message.chat.id, 'У вас нет прав на эту команду!')
 
     @bot.message_handler(content_types=['text'])
     def text(message):
@@ -50,6 +65,18 @@ def main():
             elif temp_user_data.temp_data(user_id)[user_id][1] == 3:
                 bot.restrict_chat_member(chat_id=config.get_config()['chat_id'], user_id=user_id)
                 temp_user_data.reset_user(user_id)
+            elif temp_user_data.temp_data(user_id)[user_id][3] == 1:
+                id_post = bot.send_message(message.chat.id, 'Введите ID поста: ')
+                print(id_post)
+                db_actions.del_post(post_id=id_post)
+                temp_user_data.temp_data(user_id)[user_id][3] = None
+            elif temp_user_data.temp_data(user_id)[user_id][3] == 2:
+                bot.send_message(message.chat.id, 'Отправьте фото поста')
+                temp_user_data.temp_data(user_id)[user_id][3] = 3
+            elif temp_user_data.temp_data(user_id)[user_id][3] == 3:
+                bot.send_message(message.chat.id, 'Введите контент поста')
+                temp_user_data.temp_data(user_id)[user_id][3] = None
+                db_actions.add_post(temp_user_data.temp_data(user_id)[user_id][2:4])
 
     @bot.message_handler(func=lambda message: True)
     def handle_message(message):
@@ -83,10 +110,19 @@ def main():
         user_id = message.from_user.id
         if user_id in posts:
             post_text = posts[user_id]
-            bot.send_message(chat_id, post_text)
+            bot.send_message(message.chat_id, post_text)
             bot.reply_to(message, "Пост успешно отправлен в группу.")
         else:
             bot.reply_to(message, "Сначала создайте новый пост с помощью команды /newpost")
+
+    @bot.callback_query_handler(func=lambda call: True)
+    def callback(call):
+        user_id = call.message.chat.id
+        buttons = Bot_inline_btns_first()
+        if call.data == 'create_post':
+            temp_user_data.temp_data(user_id)[user_id][3] = 2
+        elif call.data == 'delete_post':
+            temp_user_data.temp_data(user_id)[user_id][3] = 1
 
     bot.polling(none_stop=True)
 
@@ -100,4 +136,5 @@ if '__main__' == __name__:
     db_actions = DbAct(db, config)
     time_machine = threading.Thread(target=clear_machine).start()
     bot = telebot.TeleBot(config.get_config()['tg_api'])
+    admin_ids = config.get_config()['admins']
     main()

@@ -21,6 +21,13 @@ class Bot_inline_btns_first:
         return keyboard
 
 
+    def admin_btns(self):
+        create = types.InlineKeyboardButton('Создать пост', callback_data='create_post')
+        delete = types.InlineKeyboardButton('Удалить пост', callback_data='delete_post')
+        self.__markup.add(create, delete)
+        return self.__markup
+
+
 class Bot_inline_btns_second:
     def __init__(self):
         super(Bot_inline_btns_second, self).__init__()
@@ -39,4 +46,5 @@ class Bot_inline_btns_second:
         on_nego = types.KeyboardButton('Ссылка на него')
         keyboard.add(rules, browser, on_nego)
         return keyboard
+
 

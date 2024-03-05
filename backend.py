@@ -12,7 +12,7 @@ class TempUserData:
     def __init__(self):
         super(TempUserData, self).__init__()
         self.__user_data = {}
-        self.__reset = [0, 0, None]
+        self.__reset = [0, 0, None, [None, None, None]]
 
     def temp_data(self, user_id):
         if user_id not in self.__user_data.keys():
