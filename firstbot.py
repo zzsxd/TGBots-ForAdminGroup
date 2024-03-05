@@ -22,11 +22,9 @@ posts = {}  # Словарь для хранения созданных пост
 
 def clear_machine():
     while True:
-        print(temp_user_data.get_all_temp_data())
         for i in temp_user_data.get_all_temp_data().keys():
             temp_user_data.get_all_temp_data()[i][0] = 0
-            print(temp_user_data.get_all_temp_data()[i][0])
-        time.sleep(5)
+        time.sleep(10)
 
 def is_admin(user_id, admin_ids):
     return user_id in admin_ids
@@ -45,8 +43,6 @@ def main():
         buttons = Bot_inline_btns_first()
         user_id = message.from_user.id
         user_name = message.from_user.first_name
-        print(user_id)
-        print(config.get_config()['admins'])
         if is_admin(message.chat.id, admin_ids):
             bot.send_message(message.chat.id, f'Привет!, {user_name}!', reply_markup=buttons.admin_btns())
         else:
@@ -54,6 +50,7 @@ def main():
 
     @bot.message_handler(content_types=['text'])
     def text(message):
+        user_input = message.text
         user_id = message.from_user.id
         temp_user_data.temp_data(user_id)[user_id][0] += 1
         if temp_user_data.temp_data(user_id)[user_id][0] >= 10:
@@ -64,19 +61,22 @@ def main():
                 bot.reply_to(message, 'Не спамьте! Последнее предупреждение!')
             elif temp_user_data.temp_data(user_id)[user_id][1] == 3:
                 bot.restrict_chat_member(chat_id=config.get_config()['chat_id'], user_id=user_id)
+                bot.send_message(chat_id=config.get_config()['chat_id'], text='Вы были забанены за спам!')
                 temp_user_data.reset_user(user_id)
-            elif temp_user_data.temp_data(user_id)[user_id][3] == 1:
-                id_post = bot.send_message(message.chat.id, 'Введите ID поста: ')
-                print(id_post)
-                db_actions.del_post(post_id=id_post)
-                temp_user_data.temp_data(user_id)[user_id][3] = None
-            elif temp_user_data.temp_data(user_id)[user_id][3] == 2:
-                bot.send_message(message.chat.id, 'Отправьте фото поста')
-                temp_user_data.temp_data(user_id)[user_id][3] = 3
-            elif temp_user_data.temp_data(user_id)[user_id][3] == 3:
-                bot.send_message(message.chat.id, 'Введите контент поста')
-                temp_user_data.temp_data(user_id)[user_id][3] = None
-                db_actions.add_post(temp_user_data.temp_data(user_id)[user_id][2:4])
+        print(message.text) # работает и дальше ошибка
+        if temp_user_data.temp_data(user_id)[user_id][3] == 1:
+            print(321)
+            print(temp_user_data.temp_data(message.chat.id)[message.chat.id][3][0])
+            temp_user_data.temp_data(message.chat.id)[message.chat.id][3][0] = user_input
+            temp_user_data.temp_data(user_id)[user_id][3] = None
+        elif temp_user_data.temp_data(user_id)[user_id][3] == 2:
+            temp_user_data.temp_data(message.chat.id)[message.chat.id][3][1] = user_input
+            bot.send_message(message.chat.id, 'Введите контент поста')
+            temp_user_data.temp_data(user_id)[user_id][3] = 3
+        elif temp_user_data.temp_data(user_id)[user_id][3] == 3:
+            temp_user_data.temp_data(message.chat.id)[message.chat.id][3][2] = user_input
+            temp_user_data.temp_data(user_id)[user_id][3] = None
+            db_actions.add_post(temp_user_data.temp_data(user_id)[user_id][2:4])
 
     @bot.message_handler(func=lambda message: True)
     def handle_message(message):
@@ -118,10 +118,11 @@ def main():
     @bot.callback_query_handler(func=lambda call: True)
     def callback(call):
         user_id = call.message.chat.id
-        buttons = Bot_inline_btns_first()
         if call.data == 'create_post':
+            bot.send_message(call.message.chat.id, 'Отправьте фото поста')
             temp_user_data.temp_data(user_id)[user_id][3] = 2
         elif call.data == 'delete_post':
+            bot.send_message(call.message.chat.id, 'Введите ID поста: ')
             temp_user_data.temp_data(user_id)[user_id][3] = 1
 
     bot.polling(none_stop=True)
