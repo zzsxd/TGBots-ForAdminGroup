@@ -15,8 +15,6 @@ from frontend import Bot_inline_btns_first
 from db import DB
 ####################################################################
 config_name = 'botfirstsecrets.json'
-last_message_times = {}  # Список для отслеживания пользователей и времени их последнего сообщения
-posts = {}  # Словарь для хранения созданных постов
 ####################################################################
 
 
@@ -25,11 +23,6 @@ def clear_machine():
         for i in temp_user_data.get_all_temp_data().keys():
             temp_user_data.get_all_temp_data()[i][0] = 0
         time.sleep(10)
-
-def create_new_post(message):
-    user_id = message.from_user.id
-    posts[user_id] = message.text
-    bot.reply_to(message, "Пост создан. Чтобы выполнить рассылку, введите /sendpost")
 
 def is_admin(user_id, admin_ids):
     return user_id in admin_ids
@@ -62,7 +55,6 @@ def main():
         user_input = message.text
         photo = message.photo
         user_id = message.from_user.id
-        print(user_id)
         temp_user_data.temp_data(user_id)[user_id][0] += 1
         if temp_user_data.temp_data(user_id)[user_id][0] >= 10:
             temp_user_data.temp_data(user_id)[user_id][1] += 1
